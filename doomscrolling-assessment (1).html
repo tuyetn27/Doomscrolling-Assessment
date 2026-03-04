@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doomscrolling Self-Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --card: #ffffff;
+    --accent: #ff2d5b;
+    --accent2: #ff6b35;
+    --dark: #1a1220;
+    --mid: #4a3f5c;
+    --light: #9b8fb0;
+    --border: #e8e2f0;
+    --selected-bg: #fff0f3;
+    --selected-border: #ff2d5b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--dark);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* Hero */
+  .hero {
+    background: var(--dark);
+    padding: 48px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff2d5b22, transparent 70%);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff6b3522, transparent 70%);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: #ff2d5b22;
+    border: 1px solid #ff2d5b44;
+    color: #ff2d5b;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: #ff2d5b; }
+  .hero p {
+    color: #9b8fb0;
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0 auto 28px;
+    font-weight: 300;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6b5f80;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  .hero-meta-item span { color: #ff2d5b; font-weight: 600; }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: var(--dark);
+    padding: 0 24px 20px;
+  }
+  .progress-track {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #2a2035;
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff2d5b, #ff6b35);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    max-width: 600px;
+    margin: 8px auto 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #6b5f80;
+    letter-spacing: 1px;
+  }
+
+  /* Questions container */
+  .questions-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px 20px 0;
+  }
+
+  .question-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeUp 0.4s forwards;
+  }
+  .question-card.answered {
+    border-color: #ff2d5b33;
+    box-shadow: 0 4px 20px #ff2d5b0a;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .q-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--dark);
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .question-card.answered .q-num {
+    background: var(--accent);
+  }
+  .q-category {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .q-text {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--mid);
+    font-weight: 400;
+  }
+
+  /* Answer options */
+  .options {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .option input { display: none; }
+  .option-btn {
+    width: 100%;
+    padding: 10px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fafaf8;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .option-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+  .option-label {
+    font-size: 10px;
+    color: var(--light);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    display: block;
+  }
+  .option input:checked ~ .option-btn {
+    border-color: var(--accent);
+    background: var(--selected-bg);
+    box-shadow: 0 2px 12px #ff2d5b18;
+  }
+  .option input:checked ~ .option-btn .option-label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .option:hover .option-btn {
+    border-color: #ff2d5b66;
+    background: #fff8f9;
+    transform: translateY(-1px);
+  }
+
+  /* Submit button */
+  .submit-wrap {
+    max-width: 600px;
+    margin: 28px auto 0;
+    padding: 0 20px;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .submit-btn:hover {
+    background: #2a1e3a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px #1a122044;
+  }
+  .submit-btn:disabled {
+    background: #c8c0d8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .submit-btn .btn-note {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.6;
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Results */
+  .results {
+    display: none;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+  .results.show { display: block; }
+
+  .result-hero {
+    background: var(--dark);
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--result-color, #ff2d5b)22, transparent 70%);
+  }
+  .result-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #6b5f80;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .result-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--result-color, #ff2d5b);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .result-max { font-size: 18px; color: #4a3f5c; font-weight: 400; }
+  .result-level {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 14px;
+  }
+  .result-desc {
+    font-size: 13.5px;
+    color: #9b8fb0;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* Score bar */
+  .score-bar-wrap {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border);
+  }
+  .score-bar-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .score-range {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .range-segment {
+    height: 8px;
+    border-radius: 4px;
+    background: #f0eaf8;
+    transition: background 0.3s;
+  }
+  .range-segment.active { background: var(--result-color, #ff2d5b); }
+  .range-labels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .range-lbl {
+    font-size: 9px;
+    text-align: center;
+    color: var(--light);
+    letter-spacing: 0.5px;
+  }
+  .range-lbl.active { color: var(--result-color, #ff2d5b); font-weight: 600; }
+
+  /* Subscale breakdown */
+  .subscales {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border);
+  }
+  .subscale-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .subscale-item {
+    margin-bottom: 16px;
+  }
+  .subscale-item:last-child { margin-bottom: 0; }
+  .subscale-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .subscale-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mid);
+  }
+  .subscale-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+  .subscale-bar-track {
+    height: 6px;
+    background: #f0eaf8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .subscale-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #ff2d5b, #ff6b35);
+    transition: width 0.8s ease;
+  }
+
+  /* Next steps */
+  .next-steps {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1.5px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .next-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .step-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .step-item:last-child { margin-bottom: 0; }
+  .step-icon {
+    width: 32px; height: 32px;
+    background: #fff0f3;
+    border: 1px solid #ff2d5b22;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .step-text { font-size: 13px; color: var(--mid); line-height: 1.5; }
+  .step-text strong { color: var(--dark); font-weight: 500; }
+
+  .retake-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    color: var(--mid);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .retake-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .citation {
+    text-align: center;
+    font-size: 10px;
+    color: #c0b8cc;
+    padding: 0 20px;
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 400px) {
+    .options { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .option-btn { padding: 8px 2px; }
+    .option-emoji { font-size: 14px; }
+    .option-label { font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">Team 11 · Wellness Initiative</div>
+  <h1>Are You a<br><span>Doomscroller?</span></h1>
+  <p>This quick 12-question assessment helps you understand your relationship with negative news and late-night scrolling habits.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">⏱ <span>~3 min</span> to complete</div>
+    <div class="hero-meta-item">🔒 <span>Anonymous</span> & confidential</div>
+    <div class="hero-meta-item">📊 <span>12</span> questions</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressText">0 of 12 answered</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<div class="questions-container" id="questionsContainer">
+</div>
+
+<div class="submit-wrap" id="submitWrap">
+  <button class="submit-btn" id="submitBtn" disabled onclick="showResults()">
+    See My Results
+    <span class="btn-note">Answer all 12 questions to continue</span>
+  </button>
+</div>
+
+<div class="results" id="resultsSection">
+  <div class="result-hero" id="resultHero">
+    <div class="result-label">Your Doomscrolling Level</div>
+    <div class="result-score" id="resultScore">0</div>
+    <div class="result-level" id="resultLevel">—</div>
+    <div class="result-desc" id="resultDesc">—</div>
+  </div>
+
+  <div class="score-bar-wrap">
+    <div class="score-bar-label">Where you fall on the scale</div>
+    <div class="score-range" id="scoreRange">
+      <div class="range-segment" data-idx="0"></div>
+      <div class="range-segment" data-idx="1"></div>
+      <div class="range-segment" data-idx="2"></div>
+      <div class="range-segment" data-idx="3"></div>
+      <div class="range-segment" data-idx="4"></div>
+    </div>
+    <div class="range-labels">
+      <div class="range-lbl" data-idx="0">Minimal<br>0–16</div>
+      <div class="range-lbl" data-idx="1">Mild<br>17–36</div>
+      <div class="range-lbl" data-idx="2">Moderate<br>37–60</div>
+      <div class="range-lbl" data-idx="3">Mod. Severe<br>61–80</div>
+      <div class="range-lbl" data-idx="4">Severe<br>81–96</div>
+    </div>
+  </div>
+
+  <div class="subscales">
+    <div class="subscale-title">Breakdown by category</div>
+    <div class="subscale-item">
+      <div class="subscale-row">
+        <div class="subscale-name">📱 Addiction</div>
+        <div class="subscale-score" id="scoreAddiction">—</div>
+      </div>
+      <div class="subscale-bar-track"><div class="subscale-bar-fill" id="barAddiction" style="width:0%"></div></div>
+    </div>
+    <div class="subscale-item">
+      <div class="subscale-row">
+        <div class="subscale-name">🔁 Rigidity</div>
+        <div class="subscale-score" id="scoreRigidity">—</div>
+      </div>
+      <div class="subscale-bar-track"><div class="subscale-bar-fill" id="barRigidity" style="width:0%"></div></div>
+    </div>
+    <div class="subscale-item">
+      <div class="subscale-row">
+        <div class="subscale-name">🧠 Mental Health Impact</div>
+        <div class="subscale-score" id="scoreMental">—</div>
+      </div>
+      <div class="subscale-bar-track"><div class="subscale-bar-fill" id="barMental" style="width:0%"></div></div>
+    </div>
+    <div class="subscale-item">
+      <div class="subscale-row">
+        <div class="subscale-name">🪞 Self-Reflection</div>
+        <div class="subscale-score" id="scoreReflection">—</div>
+      </div>
+      <div class="subscale-bar-track"><div class="subscale-bar-fill" id="barReflection" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="next-steps" id="nextSteps">
+    <div class="next-title">What you can do</div>
+  </div>
+
+  <button class="retake-btn" onclick="retake()">↺ Retake the Assessment</button>
+
+  <div class="citation">DQ-12 © Melnyk Y.B. & Stadnik A.V. (2024). KRPOCH Scientific Research Institute.<br>This tool is for educational use only and is not a clinical diagnosis.</div>
+</div>
+
+<script>
+const questions = [
+  { id: 1,  group: 1, category: "Addiction",     emoji: ["😐","🙂","😬","😰","😵"], text: "I have subscriptions to online news sites and news update alerts that I check several times a day." },
+  { id: 2,  group: 1, category: "Rigidity",       emoji: ["😐","🙂","😬","😰","😵"], text: "When I watch the news on the Internet, I don't realize how quickly time passes." },
+  { id: 3,  group: 1, category: "Mental Health",  emoji: ["😐","🙂","😬","😰","😵"], text: "I watch the news trying to find answers to questions that worry me (how to solve a problem, help loved ones, make a hard decision)." },
+  { id: 4,  group: 1, category: "Reflection",     emoji: ["😐","🙂","😬","😰","😵"], text: "I feel more anxious or stressed after consuming negative news online." },
+  { id: 5,  group: 2, category: "Addiction",      emoji: ["😐","🙂","😬","😰","😵"], text: "It has become a habit to start my morning by checking negative news and end the day late at night doing the same." },
+  { id: 6,  group: 2, category: "Rigidity",       emoji: ["😐","🙂","😬","😰","😵"], text: "I am horrified by what I see on social media, but I cannot switch to anything else." },
+  { id: 7,  group: 2, category: "Mental Health",  emoji: ["😐","🙂","😬","😰","😵"], text: "I feel a state of uncertainty or dread — like something bad is about to happen — after following negative news." },
+  { id: 8,  group: 2, category: "Reflection",     emoji: ["😐","🙂","😬","😰","😵"], text: "I try to follow negative events on social media to verify if they really happened." },
+  { id: 9,  group: 3, category: "Addiction",      emoji: ["😐","🙂","😬","😰","😵"], text: "When I wake up at night, I check the news to see if anything bad has happened recently." },
+  { id: 10, group: 3, category: "Rigidity",       emoji: ["😐","🙂","😬","😰","😵"], text: "I find it hard to stop watching negative news, reading comments, or refraining from discussing them on social media." },
+  { id: 11, group: 3, category: "Mental Health",  emoji: ["😐","🙂","😬","😰","😵"], text: "Recent negative news causes me to feel anxious, fearful, irritable, or affects my eating or sleep." },
+  { id: 12, group: 3, category: "Reflection",     emoji: ["😐","🙂","😬","😰","😵"], text: "I pay close attention to negative news analysis and predictions, and sometimes feel like real information is being hidden from me." },
+];
+
+const optionLabels = ["Never", "Sometimes", "Often", "Routinely", "Always"];
+const optionEmojis = ["😌", "🙂", "😬", "😰", "😵"];
+
+const levels = [
+  { label: "Minimal", color: "#22c55e", max: 16,  desc: "You have some interest in news but can easily control how much time you spend. This is a healthy relationship with online information." },
+  { label: "Mild",    color: "#f59e0b", max: 36,  desc: "You find it harder to control news consumption and feel driven to stay informed. You may notice some obsessive thoughts about hidden information." },
+  { label: "Moderate", color: "#f97316", max: 60, desc: "Watching news creates an illusion of control for you. You may be experiencing sleep difficulties and tension as a result of negative content." },
+  { label: "Moderately Severe", color: "#ef4444", max: 80, desc: "Your internet time is largely uncontrolled and you view negative news many times a day. You may experience anxiety, suspicion, and social isolation." },
+  { label: "Severe",  color: "#dc2626", max: 96,  desc: "You have a strong dependency on negative news content. This is likely significantly affecting your mental health, motivation, and daily functioning." },
+];
+
+const nextStepsByLevel = [
+  [ { icon: "📵", text: "<strong>Set a 10 PM phone cutoff.</strong> Use iPhone Screen Time or Android Digital Wellbeing to block news apps in the evening." },
+    { icon: "✅", text: "<strong>You're doing well!</strong> Consider checking in with this assessment monthly to stay aware of your habits." } ],
+  [ { icon: "🔔", text: "<strong>Turn off news notifications.</strong> You don't need to be alerted to every story — choose 1–2 scheduled check-in times instead." },
+    { icon: "📖", text: "<strong>Replace one scroll session</strong> with an offline activity: reading fiction, journaling, or a short walk." } ],
+  [ { icon: "📵", text: "<strong>Charge your phone outside your bedroom</strong> and avoid all screens 2 hours before bed." },
+    { icon: "🌻", text: "<strong>Try positive content substitution</strong> — swap one doom scroll for Good News Network or Upworthy." },
+    { icon: "👥", text: "<strong>Find an accountability partner</strong> to do a weekly check-in with on your screen time data." } ],
+  [ { icon: "🧘", text: "<strong>Practice a wind-down routine</strong> — light stretching, journaling, or music instead of scrolling at night." },
+    { icon: "📵", text: "<strong>Delete news apps from your home screen</strong> to add friction before checking." },
+    { icon: "💬", text: "<strong>Talk to someone</strong> — a counselor, friend, or student wellness center about what's driving the anxiety." } ],
+  [ { icon: "🏥", text: "<strong>Consider speaking with a counselor.</strong> Severe doomscrolling often signals underlying anxiety that a professional can help with." },
+    { icon: "🚫", text: "<strong>Try a 48-hour news detox</strong> with a friend's support. Notice how your mood and sleep shift." },
+    { icon: "🧠", text: "<strong>Your campus wellness center</strong> offers free mental health resources — this score suggests it's worth a visit." } ],
+];
+
+let answers = {};
+
+function buildQuestions() {
+  const container = document.getElementById('questionsContainer');
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `card-${q.id}`;
+    card.style.animationDelay = `${i * 0.06}s`;
+
+    let optionsHTML = optionLabels.map((lbl, v) => `
+      <label class="option">
+        <input type="radio" name="q${q.id}" value="${v}" onchange="selectAnswer(${q.id}, ${v})">
+        <div class="option-btn">
+          <span class="option-emoji">${optionEmojis[v]}</span>
+          <span class="option-label">${lbl}</span>
+        </div>
+      </label>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-num">${q.id}</div>
+        <div>
+          <div class="q-category">${q.category}</div>
+          <div class="q-text">${q.text}</div>
+        </div>
+      </div>
+      <div class="options">${optionsHTML}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function selectAnswer(qid, val) {
+  answers[qid] = val;
+  const card = document.getElementById(`card-${qid}`);
+  card.classList.add('answered');
+  const num = card.querySelector('.q-num');
+  num.textContent = '✓';
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const count = Object.keys(answers).length;
+  const pct = Math.round((count / 12) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${count} of 12 answered`;
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const btn = document.getElementById('submitBtn');
+  if (count === 12) {
+    btn.disabled = false;
+    btn.querySelector('.btn-note').textContent = 'Tap to see your personalized results';
+  }
+}
+
+function calcScore() {
+  let total = 0;
+  // Groups: 1=questions 1-4 (×1), 2=questions 5-8 (×2), 3=questions 9-12 (×3)
+  questions.forEach(q => {
+    const val = answers[q.id] || 0;
+    total += val * q.group;
+  });
+  return total;
+}
+
+function calcSubscales() {
+  const cats = { Addiction: 0, Rigidity: 0, "Mental Health": 0, Reflection: 0 };
+  const maxes = { Addiction: 0, Rigidity: 0, "Mental Health": 0, Reflection: 0 };
+
+  questions.forEach(q => {
+    const val = answers[q.id] || 0;
+    const weighted = val * q.group;
+    cats[q.category] = (cats[q.category] || 0) + weighted;
+    maxes[q.category] = (maxes[q.category] || 0) + (4 * q.group);
+  });
+  return { scores: cats, maxes };
+}
+
+function showResults() {
+  document.getElementById('questionsContainer').style.display = 'none';
+  document.getElementById('submitWrap').style.display = 'none';
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressText').textContent = 'Completed!';
+  document.getElementById('progressPct').textContent = '100%';
+
+  const score = calcScore();
+  const levelIdx = levels.findIndex(l => score <= l.max);
+  const level = levels[levelIdx];
+  const color = level.color;
+
+  // Set CSS var for color
+  document.documentElement.style.setProperty('--result-color', color);
+
+  document.getElementById('resultScore').textContent = score;
+  document.getElementById('resultScore').style.color = color;
+  document.getElementById('resultLevel').textContent = level.label + ' Doomscrolling';
+  document.getElementById('resultDesc').textContent = level.desc;
+
+  // Highlight range
+  document.querySelectorAll('.range-segment').forEach((el, i) => {
+    if (i === levelIdx) el.classList.add('active');
+  });
+  document.querySelectorAll('.range-lbl').forEach((el, i) => {
+    if (i === levelIdx) el.classList.add('active');
+  });
+
+  // Subscales
+  const { scores, maxes } = calcSubscales();
+  const cats = [
+    { key: 'Addiction', scoreEl: 'scoreAddiction', barEl: 'barAddiction' },
+    { key: 'Rigidity', scoreEl: 'scoreRigidity', barEl: 'barRigidity' },
+    { key: 'Mental Health', scoreEl: 'scoreMental', barEl: 'barMental' },
+    { key: 'Reflection', scoreEl: 'scoreReflection', barEl: 'barReflection' },
+  ];
+  setTimeout(() => {
+    cats.forEach(c => {
+      const s = scores[c.key] || 0;
+      const m = maxes[c.key] || 1;
+      document.getElementById(c.scoreEl).textContent = `${s} / ${m}`;
+      document.getElementById(c.barEl).style.width = ((s / m) * 100) + '%';
+    });
+  }, 200);
+
+  // Next steps
+  const steps = nextStepsByLevel[levelIdx];
+  const ns = document.getElementById('nextSteps');
+  steps.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'step-item';
+    div.innerHTML = `<div class="step-icon">${s.icon}</div><div class="step-text">${s.text}</div>`;
+    ns.appendChild(div);
+  });
+
+  const resultsSection = document.getElementById('resultsSection');
+  resultsSection.classList.add('show');
+  resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function retake() {
+  answers = {};
+  document.getElementById('questionsContainer').innerHTML = '';
+  document.getElementById('questionsContainer').style.display = 'block';
+  document.getElementById('submitWrap').style.display = 'block';
+  document.getElementById('resultsSection').classList.remove('show');
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressText').textContent = '0 of 12 answered';
+  document.getElementById('progressPct').textContent = '0%';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').querySelector('.btn-note').textContent = 'Answer all 12 questions to continue';
+
+  // Reset subscale bars
+  ['barAddiction','barRigidity','barMental','barReflection'].forEach(id => {
+    document.getElementById(id).style.width = '0%';
+  });
+  document.querySelectorAll('.range-segment').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.range-lbl').forEach(el => el.classList.remove('active'));
+
+  // Clear next steps
+  const ns = document.getElementById('nextSteps');
+  while (ns.children.length > 1) ns.removeChild(ns.lastChild);
+
+  buildQuestions();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildQuestions();
+</script>
+</body>
+</html>
